@@ -1,0 +1,48 @@
+name: Build and Push Docker Images to ECR
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build webapp image
+        run: |
+          docker build -t clo835-webapp -f Dockerfile .
+
+      - name: Tag webapp image
+        run: |
+          docker tag clo835-webapp:latest 969912970757.dkr.ecr.us-east-1.amazonaws.com/clo835-webapp:latest
+
+      - name: Push webapp image
+        run: |
+          docker push 969912970757.dkr.ecr.us-east-1.amazonaws.com/clo835-webapp:latest
+
+      - name: Build mysql image
+        run: |
+          docker build -t clo835-mysql -f Dockerfile_mysql .
+
+      - name: Tag mysql image
+        run: |
+          docker tag clo835-mysql:latest 969912970757.dkr.ecr.us-east-1.amazonaws.com/clo835-mysql:latest
+
+      - name: Push mysql image
+        run: |
+          docker push 969912970757.dkr.ecr.us-east-1.amazonaws.com/clo835-mysql:latest
